@@ -1,9 +1,7 @@
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.ext.asyncio import create_async_engine
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from fastapi import HTTPException
 
@@ -44,13 +42,13 @@ class NewsService:
             news = await self._db.get(News, news_id)
             return news
         except SQLAlchemyError as e:
-            raise HTTPException(status_code=500, detail='Error while getting news')
+            raise HTTPException(status_code=500, detail=f'Error while getting news with id - {news_id}')
 
     async def get_news_by_id(self, news_id:int) -> NewsOut:
             news = await self.__get_news(news_id)
             return NewsOut.from_attributes(news)
 
-    async def delete_news_by_id(self, news_id: int):
+    async def delete_news_by_id(self, news_id: int) -> None:
         try:
             news = await self.__get_news(news_id)
 
@@ -65,4 +63,21 @@ class NewsService:
             await self._db.rollback()
             raise HTTPException(status_code=500, detail=f'Error while deleting news - {e}')
 
+
+    async def update_news(self, news: NewsCreate,news_id: int) -> NewsOut:
+        existing_news = await self.__get_news(news_id)
+        if existing_news is None:
+            raise HTTPException(status_code=404, detail=f'News with id {news_id} not existing')
+
+        stmt = update(News).where(News.id == news_id).values(news.model_dump(exclude_unset=True))
+
+        try:
+            await self._db.execute(stmt)
+            await self._db.commit()
+
+            updated_news = await self.__get_news(news_id)
+            return NewsOut.from_attributes(updated_news)
+        except SQLAlchemyError as e:
+            await self._db.rollback()
+            raise HTTPException(status_code=500, detail=f'Error while updating news - {e}')
 
