@@ -8,6 +8,12 @@ class NewsCreate(BaseModel):
     is_published: bool =False
     author_id: int
 
+    class Config:
+        from_attributes = True
+
 class NewsOut(NewsCreate):
     id: int
     published_at: datetime.datetime
+
+    class Config:
+        from_attributes = True
