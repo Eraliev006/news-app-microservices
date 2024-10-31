@@ -23,4 +23,4 @@ class DBSettings(BaseSettings):
 settings = DBSettings()
 
 if __name__ == '__main__':
-    print(settings.DATABASE_URL_asyncpg)
+    print(settings)
