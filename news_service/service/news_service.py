@@ -7,7 +7,7 @@ from news_service.models import News
 from news_service.schemas import NewsCreate, NewsOut
 
 
-class NewsServcice:
+class NewsService:
     def __init__(self, db: AsyncSession):
         self._db = db
 
